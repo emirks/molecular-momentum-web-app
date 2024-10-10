@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Button, StyleSheet } from 'react-native';
+import { View, Text, Button, StyleSheet, Alert } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -14,24 +14,27 @@ const HabitDetailScreen = ({ route }) => {
   const fetchHabitDetails = async () => {
     try {
       const token = await AsyncStorage.getItem('token');
-      const response = await axios.get(`http://localhost:8000/api/habits/${habitId}/detailed/`, {
+      const response = await axios.get(`http://10.0.2.2:8000/api/habits/${habitId}/detailed/`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setHabit(response.data);
     } catch (error) {
       console.error('Failed to fetch habit details:', error);
+      Alert.alert('Error', 'Failed to fetch habit details');
     }
   };
 
   const markCompleted = async () => {
     try {
       const token = await AsyncStorage.getItem('token');
-      await axios.post(`http://localhost:8000/api/habits/${habitId}/mark-completed/`, {}, {
+      await axios.post(`http://10.0.2.2:8000/api/habits/${habitId}/mark-completed/`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       fetchHabitDetails(); // Refresh habit details
+      Alert.alert('Success', 'Habit marked as completed');
     } catch (error) {
       console.error('Failed to mark habit as completed:', error);
+      Alert.alert('Error', 'Failed to mark habit as completed');
     }
   };
 

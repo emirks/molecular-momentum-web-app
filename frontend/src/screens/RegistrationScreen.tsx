@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, TextInput, Button, StyleSheet } from 'react-native';
+import { View, TextInput, Button, StyleSheet, Alert } from 'react-native';
 import axios from 'axios';
 
 const RegistrationScreen = ({ navigation }) => {
@@ -9,15 +9,23 @@ const RegistrationScreen = ({ navigation }) => {
 
   const handleRegister = async () => {
     try {
-      const response = await axios.post('http://localhost:8000/api/users/', {
+      const response = await axios.post('http://10.0.2.2:8000/api/users/', {
         username,
         email,
         password,
       });
-      // Registration successful, navigate to Login
+      Alert.alert('Registration Successful', 'You can now log in with your new account');
       navigation.navigate('Login');
     } catch (error) {
-      console.error('Registration failed:', error);
+      if (axios.isAxiosError(error)) {
+        console.error('Registration failed:', error.message);
+        console.error('Response data:', error.response?.data);
+        console.error('Response status:', error.response?.status);
+        Alert.alert('Registration Failed', JSON.stringify(error.response?.data) || 'An error occurred');
+      } else {
+        console.error('Registration failed:', error);
+        Alert.alert('Registration Failed', 'An unexpected error occurred');
+      }
     }
   };
 

@@ -116,4 +116,9 @@ dependencies {
     } else {
         implementation jscFlavor
     }
+    implementation project(':react-native-gesture-handler')
 }
+
+project.ext.react = [
+    enableHermes: true
+]
