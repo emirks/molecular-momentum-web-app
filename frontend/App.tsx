@@ -8,10 +8,10 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import LoginScreen from './screens/LoginScreen';
-import RegistrationScreen from './screens/RegistrationScreen';
-import DashboardScreen from './screens/DashboardScreen';
-import HabitDetailScreen from './screens/HabitDetailScreen';
+import LoginScreen from './src/screens/LoginScreen';
+import RegistrationScreen from './src/screens/RegistrationScreen';
+import DashboardScreen from './src/screens/DashboardScreen';
+import HabitDetailScreen from './src/screens/HabitDetailScreen';
 
 const Stack = createStackNavigator();
 
