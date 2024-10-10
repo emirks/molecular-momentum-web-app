@@ -14,7 +14,7 @@ const DashboardScreen = ({ navigation }) => {
   const fetchHabits = async () => {
     try {
       const token = await AsyncStorage.getItem('token');
-      const response = await axios.get('http://localhost:8000/habits/', {
+      const response = await axios.get('http://localhost:8000/api/habits/', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setHabits(response.data);

@@ -9,7 +9,7 @@ const LoginScreen = ({ navigation }) => {
 
   const handleLogin = async () => {
     try {
-      const response = await axios.post('http://localhost:8000/token/', {
+      const response = await axios.post('http://localhost:8000/api/token/', {
         username,
         password,
       });
