@@ -12,6 +12,7 @@ import LoginScreen from './src/screens/LoginScreen';
 import RegistrationScreen from './src/screens/RegistrationScreen';
 import DashboardScreen from './src/screens/DashboardScreen';
 import HabitDetailScreen from './src/screens/HabitDetailScreen';
+import AddHabitScreen from './src/screens/AddHabitScreen';
 
 const Stack = createStackNavigator();
 
@@ -23,6 +24,7 @@ const App = () => {
         <Stack.Screen name="Registration" component={RegistrationScreen} />
         <Stack.Screen name="Dashboard" component={DashboardScreen} />
         <Stack.Screen name="HabitDetail" component={HabitDetailScreen} />
+        <Stack.Screen name="AddHabit" component={AddHabitScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
