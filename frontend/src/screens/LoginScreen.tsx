@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, TextInput, Button, StyleSheet, Text, Alert } from 'react-native';
-import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import axiosInstance from '../base_axios';
 
 const LoginScreen = ({ navigation }) => {
   const [username, setUsername] = useState('');
@@ -9,21 +9,39 @@ const LoginScreen = ({ navigation }) => {
 
   const handleLogin = async () => {
     try {
-      const response = await axios.post('http://10.0.2.2:8000/api/token/', {
-        username,
-        password,
+      // Obtain JWT tokens
+      const tokenResponse = await axiosInstance.post('token/', {
+        username: username,
+        password: password,
       });
-      await AsyncStorage.setItem('token', response.data.access);
-      navigation.navigate('Dashboard');
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        console.error('Login failed:', error.message);
-        console.error('Response data:', error.response?.data);
-        console.error('Response status:', error.response?.status);
-        Alert.alert('Login Failed', error.response?.data?.detail || 'An error occurred');
+      
+      const { access, refresh } = tokenResponse.data;
+      
+      // Store tokens
+      await AsyncStorage.setItem('access_token', access);
+      await AsyncStorage.setItem('refresh_token', refresh);
+
+      // Set the access token for subsequent requests
+      axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${access}`;
+
+      // Fetch user details
+      const userResponse = await axiosInstance.get('users/');
+      const user = userResponse.data.find(u => u.username === username);
+      
+      if (user) {
+        await AsyncStorage.setItem('userId', user.id.toString());  // Convert UUID to string
+        navigation.navigate('Dashboard');
       } else {
-        console.error('Login failed:', error);
-        Alert.alert('Login Failed', 'An unexpected error occurred');
+        throw new Error('User not found');
+      }
+    } catch (error) {
+      console.error('Login failed:', error);
+      if (error.response) {
+        Alert.alert('Login Failed', error.response.data.detail || 'Invalid credentials');
+      } else if (error.request) {
+        Alert.alert('Network Error', 'Unable to connect to the server');
+      } else {
+        Alert.alert('Error', 'An unexpected error occurred');
       }
     }
   };

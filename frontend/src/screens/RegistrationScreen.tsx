@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, TextInput, Button, StyleSheet, Alert } from 'react-native';
-import axios from 'axios';
+import axiosInstance from '../base_axios';
 
 const RegistrationScreen = ({ navigation }) => {
   const [username, setUsername] = useState('');
@@ -9,7 +9,7 @@ const RegistrationScreen = ({ navigation }) => {
 
   const handleRegister = async () => {
     try {
-      const response = await axios.post('http://10.0.2.2:8000/api/users/', {
+      const response = await axiosInstance.post('users/', {
         username,
         email,
         password,
@@ -17,14 +17,17 @@ const RegistrationScreen = ({ navigation }) => {
       Alert.alert('Registration Successful', 'You can now log in with your new account');
       navigation.navigate('Login');
     } catch (error) {
-      if (axios.isAxiosError(error)) {
-        console.error('Registration failed:', error.message);
-        console.error('Response data:', error.response?.data);
-        console.error('Response status:', error.response?.status);
-        Alert.alert('Registration Failed', JSON.stringify(error.response?.data) || 'An error occurred');
+      console.error('Registration failed:', error);
+      if (error.response) {
+        // The request was made and the server responded with a status code
+        // that falls out of the range of 2xx
+        Alert.alert('Registration Failed', JSON.stringify(error.response.data) || 'An error occurred');
+      } else if (error.request) {
+        // The request was made but no response was received
+        Alert.alert('Network Error', 'Unable to connect to the server');
       } else {
-        console.error('Registration failed:', error);
-        Alert.alert('Registration Failed', 'An unexpected error occurred');
+        // Something happened in setting up the request that triggered an Error
+        Alert.alert('Error', 'An unexpected error occurred');
       }
     }
   };

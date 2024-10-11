@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, FlatList, StyleSheet, Button, Alert } from 'react-native';
-import axios from 'axios';
+import axiosInstance from '../base_axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import HabitItem from '../components/HabitItem';
 
@@ -13,14 +13,11 @@ const DashboardScreen = ({ navigation }) => {
 
   const fetchHabits = async () => {
     try {
-      const token = await AsyncStorage.getItem('token');
-      const userId = await AsyncStorage.getItem('userId'); // Assuming you store the user's ID at login
+      const userId = await AsyncStorage.getItem('userId');
       if (!userId) {
         throw new Error('User ID not found');
       }
-      const response = await axios.get(`http://10.0.2.2:8000/api/users/${userId}/habits/`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await axiosInstance.get(`/users/${userId}/habits/`);
       setHabits(response.data);
     } catch (error) {
       console.error('Failed to fetch habits:', error);

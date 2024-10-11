@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Button, StyleSheet, Alert } from 'react-native';
-import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import axiosInstance from '../base_axios';
 
 const HabitDetailScreen = ({ route }) => {
   const { habitId } = route.params;
@@ -13,10 +12,8 @@ const HabitDetailScreen = ({ route }) => {
 
   const fetchHabitDetails = async () => {
     try {
-      const token = await AsyncStorage.getItem('token');
-      const response = await axios.get(`http://10.0.2.2:8000/api/habits/${habitId}/detailed/`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await axiosInstance.get(`habits/${habitId}/detailed/`);
+      console.log('Habit details:', response.data);
       setHabit(response.data);
     } catch (error) {
       console.error('Failed to fetch habit details:', error);
@@ -26,10 +23,7 @@ const HabitDetailScreen = ({ route }) => {
 
   const markCompleted = async () => {
     try {
-      const token = await AsyncStorage.getItem('token');
-      await axios.post(`http://10.0.2.2:8000/api/habits/${habitId}/mark-completed/`, {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await axiosInstance.post(`habits/${habitId}/mark-completed/`);
       fetchHabitDetails(); // Refresh habit details
       Alert.alert('Success', 'Habit marked as completed');
     } catch (error) {
@@ -47,8 +41,8 @@ const HabitDetailScreen = ({ route }) => {
       <Text style={styles.title}>{habit.habit_name}</Text>
       <Text>Time/Location: {habit.time_location}</Text>
       <Text>Identity: {habit.identity}</Text>
-      <Text>Current Streak: {habit.streak?.current_streak}</Text>
-      <Text>Longest Streak: {habit.streak?.longest_streak}</Text>
+      <Text>Current Streak: {habit.streak ? habit.streak.current_streak : 'N/A'}</Text>
+      <Text>Longest Streak: {habit.streak ? habit.streak.longest_streak : 'N/A'}</Text>
       <Button title="Mark as Completed" onPress={markCompleted} />
     </View>
   );
