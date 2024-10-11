@@ -34,6 +34,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
       
       if (user) {
         await AsyncStorage.setItem('userId', user.id.toString());
+        await AsyncStorage.setItem('username', user.username); // Add this line
         navigation.navigate('Dashboard');
       } else {
         throw new Error('User not found');

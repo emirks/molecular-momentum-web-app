@@ -22,12 +22,20 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
 
   const fetchUsername = async () => {
     try {
-      const storedUsername = await AsyncStorage.getItem('username');
-      if (storedUsername) {
-        setUsername(storedUsername);
+      let storedUsername = await AsyncStorage.getItem('username');
+      if (!storedUsername) {
+        const userId = await AsyncStorage.getItem('userId');
+        if (!userId) {
+          throw new Error('User ID not found');
+        }
+        const response = await axiosInstance.get(`users/${userId}/`);
+        storedUsername = response.data.username;
+        await AsyncStorage.setItem('username', storedUsername);
       }
+      setUsername(storedUsername);
     } catch (error) {
       console.error('Failed to fetch username:', error);
+      Alert.alert('Error', 'Failed to fetch username');
     }
   };
 
@@ -85,7 +93,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           
           <View style={styles.greetingContainer}>
             <Text style={styles.greetingText}>
-              RISE AND{'\n'}SHINE, {username.toUpperCase()}!
+              RISE AND{'\n'}SHINE, {username ? username.toUpperCase() : 'USER'}!
             </Text>
             <Text style={styles.subGreetingText}>
               HOW ARE YOU FEELING{'\n'}TODAY?
