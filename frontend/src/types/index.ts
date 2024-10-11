@@ -1,7 +1,7 @@
 import { StackNavigationProp } from '@react-navigation/stack';
 
 export interface Habit {
-  id: string;
+  id: number;
   habit_name: string;
   time_location: string;
   identity: string;
