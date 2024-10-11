@@ -2,9 +2,11 @@ from rest_framework import serializers
 from .models import User, TrackingChannel, Habit, HabitCompletion, HabitStreak
 
 class UserSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True)
+
     class Meta:
         model = User
-        fields = ['id', 'username', 'email']  # Add any other fields you want to include, but remove 'created_at' if it's not in your User model
+        fields = ['id', 'username', 'email', 'password']  # Add any other fields you want to include, but remove 'created_at' if it's not in your User model
 
 class TrackingChannelSerializer(serializers.ModelSerializer):
     class Meta:

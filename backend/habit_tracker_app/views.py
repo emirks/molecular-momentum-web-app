@@ -5,7 +5,7 @@ logger = logging.getLogger(__name__)
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from .models import User, TrackingChannel, Habit, HabitCompletion, HabitStreak
@@ -19,6 +19,11 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
+
+    def get_permissions(self):
+        if self.action == 'create':
+            return [AllowAny()]
+        return super().get_permissions()
 
     def list(self, request):
         logger.info(f"User {request.user.username} retrieved user list")
@@ -35,6 +40,15 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer = HabitSerializer(habits, many=True)
         logger.info(f"User {request.user.username} retrieved habits for user {pk}")
         return Response(serializer.data)
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        user.set_password(request.data['password'])
+        user.save()
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 class TrackingChannelViewSet(viewsets.ModelViewSet):
     queryset = TrackingChannel.objects.all()

@@ -178,6 +178,11 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': True,
         },
+        'django.contrib.auth': {
+            'handlers': ['file', 'console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
     },
 }
 
