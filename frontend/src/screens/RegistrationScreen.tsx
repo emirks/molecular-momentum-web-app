@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Alert } from 'react-native';
+import { View, StyleSheet, Alert, ScrollView, Image } from 'react-native';
 import { TextInput, Button, Text } from 'react-native-paper';
 import axiosInstance from '../base_axios';
 import { ScreenNavigationProp } from '../types';
+import LinearGradient from 'react-native-linear-gradient';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface RegistrationScreenProps {
   navigation: ScreenNavigationProp;
@@ -35,53 +37,95 @@ const RegistrationScreen: React.FC<RegistrationScreenProps> = ({ navigation }) =
   };
 
   return (
-    <View style={styles.container}>
-      <TextInput
-        label="Username"
-        value={username}
-        onChangeText={setUsername}
-        style={styles.input}
-      />
-      <TextInput
-        label="Email"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        style={styles.input}
-      />
-      <TextInput
-        label="Password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-        style={styles.input}
-      />
-      <Button mode="contained" onPress={handleRegister} style={styles.button}>
-        Register
-      </Button>
-      <Text style={styles.link} onPress={() => navigation.navigate('Login')}>
-        Already have an account? Login here
-      </Text>
-    </View>
+    <SafeAreaView style={styles.container}>
+      <ScrollView>
+        <LinearGradient
+          colors={['#FF69B4', '#FF8C00', '#FFA500']}
+          style={styles.gradient}
+        >
+          <View style={styles.header}>
+            <Text style={styles.headerText}>Create Account</Text>
+          </View>
+          <Image
+            source={require('../assets/registration-image.png')}
+            style={styles.registrationImage}
+          />
+        </LinearGradient>
+        <View style={styles.formContainer}>
+          <TextInput
+            label="Username"
+            value={username}
+            onChangeText={setUsername}
+            style={styles.input}
+          />
+          <TextInput
+            label="Email"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            style={styles.input}
+          />
+          <TextInput
+            label="Password"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+            style={styles.input}
+          />
+          <Button mode="contained" onPress={handleRegister} style={styles.button}>
+            Register
+          </Button>
+          <Text style={styles.link} onPress={() => navigation.navigate('Login')}>
+            Already have an account? Login here
+          </Text>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    padding: 16,
+    backgroundColor: '#FFFFFF',
+  },
+  gradient: {
+    paddingTop: 60,
+    paddingHorizontal: 25,
+    paddingBottom: 40,
+  },
+  header: {
+    marginBottom: 40,
+  },
+  headerText: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  registrationImage: {
+    width: '100%',
+    height: 200,
+    resizeMode: 'contain',
+  },
+  formContainer: {
+    padding: 25,
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    marginTop: -20,
   },
   input: {
     marginBottom: 12,
+    backgroundColor: '#F5F5F5',
   },
   button: {
     marginTop: 16,
+    backgroundColor: '#FF69B4',
   },
   link: {
     marginTop: 16,
     textAlign: 'center',
-    color: 'blue',
+    color: '#FF69B4',
   },
 });
 

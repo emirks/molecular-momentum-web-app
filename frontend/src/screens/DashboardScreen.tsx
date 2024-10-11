@@ -1,222 +1,267 @@
-import React from 'react';
-import { View, StyleSheet, Dimensions, ScrollView } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { Card, Title, Paragraph, IconButton, ProgressBar } from 'react-native-paper';
-import { LineChart } from 'react-native-chart-kit';
+import React, { useEffect, useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image, StatusBar, Alert } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
+import Icon from 'react-native-vector-icons/Ionicons';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import axiosInstance from '../base_axios';
+import { ScreenNavigationProp, Habit } from '../types';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Define the type for the navigation prop
-type RootStackParamList = {
-  AddNewHabit: undefined;
-  HabitDetails: { habitId: string };
-};
+interface DashboardScreenProps {
+  navigation: ScreenNavigationProp;
+}
 
-type DashboardScreenNavigationProp = StackNavigationProp<RootStackParamList>;
+const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
+  const [habits, setHabits] = useState<Habit[]>([]);
+  const [username, setUsername] = useState<string>('');
 
-const DashboardScreen: React.FC = () => {
-  const navigation = useNavigation<DashboardScreenNavigationProp>();
+  useEffect(() => {
+    fetchHabits();
+    fetchUsername();
+  }, []);
 
-  // Mock data for the chart
-  const chartData = {
-    labels: ['24.04', '26.04', '28.04', '30.04'],
-    datasets: [
-      {
-        data: [25, 45, 50, 0],
-        color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-        strokeWidth: 2,
-      },
-    ],
+  const fetchUsername = async () => {
+    try {
+      const storedUsername = await AsyncStorage.getItem('username');
+      if (storedUsername) {
+        setUsername(storedUsername);
+      }
+    } catch (error) {
+      console.error('Failed to fetch username:', error);
+    }
+  };
+
+  const fetchHabits = async () => {
+    try {
+      const userId = await AsyncStorage.getItem('userId');
+      if (!userId) {
+        throw new Error('User ID not found');
+      }
+      const response = await axiosInstance.get(`users/${userId}/habits/`);
+      setHabits(response.data);
+    } catch (error) {
+      console.error('Failed to fetch habits:', error);
+      Alert.alert('Error', 'Failed to fetch habits');
+    }
+  };
+
+  const handleAddHabit = () => {
+    navigation.navigate('AddHabit');
+  };
+
+  const handleHabitPress = (habitId: number) => {
+    navigation.navigate('HabitDetail', { habitId });
+  };
+
+  const handleMarkCompleted = async (habitId: number) => {
+    try {
+      await axiosInstance.post(`habits/${habitId}/mark-completed/`);
+      fetchHabits(); // Refresh the habits list
+      Alert.alert('Success', 'Habit marked as completed');
+    } catch (error) {
+      console.error('Failed to mark habit as completed:', error);
+      Alert.alert('Error', 'Failed to mark habit as completed');
+    }
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <IconButton icon="arrow-left" color="#fff" onPress={() => navigation.goBack()} />
-        <Title style={styles.headerTitle}>Dashboard</Title>
-      </View>
-      <Card style={styles.card}>
-        <Card.Content>
-          <View style={styles.headerRow}>
-            <Title style={styles.title}>Meditate</Title>
-            <IconButton 
-              icon="pencil" 
-              size={20} 
-              color="#fff"
-              onPress={() => navigation.navigate('AddNewHabit')} 
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="#FF69B4" />
+      <ScrollView>
+        <LinearGradient
+          colors={['#FF69B4', '#FF8C00', '#FFA500']}
+          style={styles.gradient}
+        >
+          <View style={styles.header}>
+            <View>
+              <Text style={styles.dateText}>Today</Text>
+              <Text style={styles.dayText}>{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}</Text>
+            </View>
+            <Image
+              source={require('../assets/profile-pic.jpg')}
+              style={styles.profilePic}
             />
           </View>
-          <Paragraph style={styles.subtitle}>Find inner peace</Paragraph>
-
-          <View style={styles.infoRow}>
-            <View>
-              <Paragraph style={styles.label}>Regularity</Paragraph>
-              <Paragraph style={styles.value}>twice a week</Paragraph>
-            </View>
-            <View>
-              <Paragraph style={styles.label}>Reminder</Paragraph>
-              <Paragraph style={styles.value}>08:00 for 30 min</Paragraph>
-            </View>
+          
+          <View style={styles.greetingContainer}>
+            <Text style={styles.greetingText}>
+              RISE AND{'\n'}SHINE, {username.toUpperCase()}!
+            </Text>
+            <Text style={styles.subGreetingText}>
+              HOW ARE YOU FEELING{'\n'}TODAY?
+            </Text>
           </View>
-
-          <View style={styles.progressSection}>
-            <Title style={styles.progressTitle}>74%</Title>
-            <Paragraph style={styles.progressSubtitle}>Overall progress</Paragraph>
+          
+          <TouchableOpacity style={styles.button} onPress={handleAddHabit}>
+            <Icon name="add" size={24} color="#FFF" />
+            <Text style={styles.buttonText}>Add New Habit</Text>
+          </TouchableOpacity>
+        </LinearGradient>
+        
+        <View style={styles.routineContainer}>
+          <View style={styles.routineHeader}>
+            <Text style={styles.routineTitle}>Your Habits</Text>
           </View>
-
-          <View style={styles.statsRow}>
-            <View>
-              <Paragraph style={styles.label}>Days in a row</Paragraph>
-              <Paragraph style={styles.statsValue}>12</Paragraph>
-            </View>
-            <View>
-              <Paragraph style={styles.label}>Record</Paragraph>
-              <Paragraph style={styles.statsValue}>28</Paragraph>
-            </View>
-          </View>
-
-          <Title style={styles.chartTitle}>Habit development graph</Title>
-          <View style={styles.chartContainer}>
-            <LineChart
-              data={chartData}
-              width={Dimensions.get('window').width - 64}
-              height={200}
-              chartConfig={{
-                backgroundColor: '#1e2923',
-                backgroundGradientFrom: '#1e2923',
-                backgroundGradientTo: '#1e2923',
-                decimalPlaces: 0,
-                color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-                labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-                style: {
-                  borderRadius: 16,
-                },
-                propsForDots: {
-                  r: '6',
-                  strokeWidth: '2',
-                  stroke: '#ffa726',
-                },
-              }}
-              bezier
-              style={styles.chart}
-            />
-          </View>
-
-          <Title style={styles.historyTitle}>History</Title>
-          <View style={styles.historyItem}>
-            <Paragraph style={styles.historyDate}>17.04-23.04</Paragraph>
-            <ProgressBar progress={1} color="#9ACD32" style={styles.progressBar} />
-          </View>
-          <View style={styles.historyItem}>
-            <Paragraph style={styles.historyDate}>10.04-16.04</Paragraph>
-            <ProgressBar progress={0.75} color="#9ACD32" style={styles.progressBar} />
-          </View>
-        </Card.Content>
-      </Card>
-    </ScrollView>
+          {habits.map((habit) => (
+            <TouchableOpacity key={habit.id} style={styles.taskItem} onPress={() => handleHabitPress(habit.id)}>
+              <Text style={styles.taskText}>{habit.habit_name}</Text>
+              <TouchableOpacity style={styles.markAsDoneButton} onPress={() => handleMarkCompleted(habit.id)}>
+                <Text style={styles.markAsDoneText}>Mark as done</Text>
+              </TouchableOpacity>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#20B2AA',
+    backgroundColor: '#FFFFFF',
+  },
+  gradient: {
+    paddingTop: StatusBar.currentHeight + 20,
+    paddingHorizontal: 25,
+    paddingBottom: 40,
   },
   header: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 40,
+  },
+  dateText: {
+    fontSize: 28,
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+  },
+  dayText: {
+    fontSize: 18,
+    color: '#FFFFFF',
+    marginTop: 5,
+  },
+  profilePic: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+  },
+  greetingContainer: {
+    marginBottom: 40,
+  },
+  greetingText: {
+    fontSize: 40,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    lineHeight: 48,
+    letterSpacing: 1,
+  },
+  subGreetingText: {
+    fontSize: 22,
+    color: '#FFFFFF',
+    marginTop: 20,
+    lineHeight: 30,
+  },
+  arrowButton: {
+    position: 'absolute',
+    right: 0,
+    bottom: 0,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 25,
+    width: 50,
+    height: 50,
+    justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 5,
   },
-  headerTitle: {
-    color: '#fff',
-    fontSize: 20,
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 20,
   },
-  card: {
-    backgroundColor: '#2E8B57',
-    borderRadius: 16,
-    marginHorizontal: 16,
-    marginBottom: 16,
+  button: {
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    paddingVertical: 15,
+    paddingHorizontal: 25,
+    borderRadius: 30,
+    flexDirection: 'row',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  headerRow: {
+  buttonText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    fontSize: 16,
+    marginLeft: 10,
+  },
+  routineContainer: {
+    padding: 25,
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    marginTop: -20, // Overlap with the gradient section
+  },
+  routineHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: 20,
   },
-  title: {
-    color: '#fff',
+  routineTitle: {
     fontSize: 24,
+    fontWeight: 'bold',
+    color: '#333',
   },
-  subtitle: {
-    color: '#E0FFFF',
-    marginBottom: 16,
+  moreOptions: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#333',
   },
-  infoRow: {
+  routineInfo: {
+    backgroundColor: '#F5F5F5',
+    borderRadius: 20,
+    padding: 15,
+    marginBottom: 20,
+  },
+  routineInfoText: {
+    color: '#666666',
+    fontSize: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  taskItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 24,
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#EEEEEE',
+    paddingVertical: 20,
   },
-  label: {
-    color: '#E0FFFF',
+  taskText: {
+    fontSize: 18,
+    color: '#333',
+  },
+  markAsDoneButton: {
+    backgroundColor: '#000000',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 25,
+  },
+  markAsDoneText: {
+    color: '#FFFFFF',
     fontSize: 14,
-  },
-  value: {
-    color: '#fff',
-    fontSize: 16,
-  },
-  progressSection: {
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  progressTitle: {
-    color: '#fff',
-    fontSize: 48,
     fontWeight: 'bold',
-  },
-  progressSubtitle: {
-    color: '#E0FFFF',
-    fontSize: 16,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: 24,
-  },
-  statsValue: {
-    color: '#fff',
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-  chartTitle: {
-    color: '#fff',
-    marginBottom: 8,
-  },
-  chartContainer: {
-    backgroundColor: '#1e2923',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 24,
-  },
-  chart: {
-    marginVertical: 8,
-    borderRadius: 16,
-  },
-  historyTitle: {
-    color: '#fff',
-    marginBottom: 8,
-  },
-  historyItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  historyDate: {
-    color: '#E0FFFF',
-  },
-  progressBar: {
-    height: 8,
-    width: 100,
-    borderRadius: 4,
   },
 });
 
