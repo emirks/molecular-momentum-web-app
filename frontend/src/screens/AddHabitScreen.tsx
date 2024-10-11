@@ -1,9 +1,15 @@
 import React, { useState } from 'react';
-import { View, TextInput, Button, StyleSheet, Alert } from 'react-native';
+import { View, StyleSheet, Alert } from 'react-native';
+import { TextInput, Button } from 'react-native-paper';
 import axiosInstance from '../base_axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { ScreenNavigationProp } from '../types';
 
-const AddHabitScreen = ({ navigation }) => {
+interface AddHabitScreenProps {
+  navigation: ScreenNavigationProp;
+}
+
+const AddHabitScreen: React.FC<AddHabitScreenProps> = ({ navigation }) => {
   const [habitName, setHabitName] = useState('');
   const [timeLocation, setTimeLocation] = useState('');
   const [identity, setIdentity] = useState('');
@@ -23,7 +29,7 @@ const AddHabitScreen = ({ navigation }) => {
       });
 
       Alert.alert('Success', 'Habit added successfully');
-      navigation.goBack(); // Return to the Dashboard
+      navigation.goBack();
     } catch (error) {
       console.error('Failed to add habit:', error);
       Alert.alert('Error', 'Failed to add habit');
@@ -33,24 +39,26 @@ const AddHabitScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <TextInput
-        style={styles.input}
-        placeholder="Habit Name"
+        label="Habit Name"
         value={habitName}
         onChangeText={setHabitName}
+        style={styles.input}
       />
       <TextInput
-        style={styles.input}
-        placeholder="Time/Location"
+        label="Time/Location"
         value={timeLocation}
         onChangeText={setTimeLocation}
+        style={styles.input}
       />
       <TextInput
-        style={styles.input}
-        placeholder="Identity"
+        label="Identity"
         value={identity}
         onChangeText={setIdentity}
+        style={styles.input}
       />
-      <Button title="Add Habit" onPress={handleAddHabit} />
+      <Button mode="contained" onPress={handleAddHabit} style={styles.button}>
+        Add Habit
+      </Button>
     </View>
   );
 };
@@ -61,11 +69,10 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   input: {
-    height: 40,
-    borderColor: 'gray',
-    borderWidth: 1,
     marginBottom: 12,
-    paddingLeft: 8,
+  },
+  button: {
+    marginTop: 16,
   },
 });
 

@@ -1,7 +1,13 @@
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { Habit } from '../types';
 
-const HabitItem = ({ habit, onPress }) => {
+interface HabitItemProps {
+  habit: Habit;
+  onPress: () => void;
+}
+
+const HabitItem: React.FC<HabitItemProps> = ({ habit, onPress }) => {
   return (
     <TouchableOpacity style={styles.container} onPress={onPress}>
       <Text style={styles.title}>{habit.habit_name}</Text>

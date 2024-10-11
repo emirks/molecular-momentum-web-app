@@ -1,11 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { View, FlatList, StyleSheet, Button, Alert } from 'react-native';
+import { View, FlatList, StyleSheet, Alert } from 'react-native';
+import { Button, List } from 'react-native-paper';
 import axiosInstance from '../base_axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import HabitItem from '../components/HabitItem';
+import { ScreenNavigationProp, Habit } from '../types';
 
-const DashboardScreen = ({ navigation }) => {
-  const [habits, setHabits] = useState([]);
+interface DashboardScreenProps {
+  navigation: ScreenNavigationProp;
+}
+
+const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
+  const [habits, setHabits] = useState<Habit[]>([]);
 
   useEffect(() => {
     fetchHabits();
@@ -31,12 +36,15 @@ const DashboardScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <Button title="Add New Habit" onPress={handleAddHabit} />
+      <Button mode="contained" onPress={handleAddHabit} style={styles.button}>
+        Add New Habit
+      </Button>
       <FlatList
         data={habits}
         renderItem={({ item }) => (
-          <HabitItem
-            habit={item}
+          <List.Item
+            title={item.habit_name}
+            description={item.time_location}
             onPress={() => navigation.navigate('HabitDetail', { habitId: item.id })}
           />
         )}
@@ -50,6 +58,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
+  },
+  button: {
+    marginBottom: 16,
   },
 });
 

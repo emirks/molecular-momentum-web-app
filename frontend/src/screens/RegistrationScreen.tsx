@@ -1,8 +1,14 @@
 import React, { useState } from 'react';
-import { View, TextInput, Button, StyleSheet, Alert } from 'react-native';
+import { View, StyleSheet, Alert } from 'react-native';
+import { TextInput, Button, Text } from 'react-native-paper';
 import axiosInstance from '../base_axios';
+import { ScreenNavigationProp } from '../types';
 
-const RegistrationScreen = ({ navigation }) => {
+interface RegistrationScreenProps {
+  navigation: ScreenNavigationProp;
+}
+
+const RegistrationScreen: React.FC<RegistrationScreenProps> = ({ navigation }) => {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -19,14 +25,10 @@ const RegistrationScreen = ({ navigation }) => {
     } catch (error) {
       console.error('Registration failed:', error);
       if (error.response) {
-        // The request was made and the server responded with a status code
-        // that falls out of the range of 2xx
         Alert.alert('Registration Failed', JSON.stringify(error.response.data) || 'An error occurred');
       } else if (error.request) {
-        // The request was made but no response was received
         Alert.alert('Network Error', 'Unable to connect to the server');
       } else {
-        // Something happened in setting up the request that triggered an Error
         Alert.alert('Error', 'An unexpected error occurred');
       }
     }
@@ -35,26 +37,31 @@ const RegistrationScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <TextInput
-        style={styles.input}
-        placeholder="Username"
+        label="Username"
         value={username}
         onChangeText={setUsername}
+        style={styles.input}
       />
       <TextInput
-        style={styles.input}
-        placeholder="Email"
+        label="Email"
         value={email}
         onChangeText={setEmail}
         keyboardType="email-address"
+        style={styles.input}
       />
       <TextInput
-        style={styles.input}
-        placeholder="Password"
+        label="Password"
         value={password}
         onChangeText={setPassword}
         secureTextEntry
+        style={styles.input}
       />
-      <Button title="Register" onPress={handleRegister} />
+      <Button mode="contained" onPress={handleRegister} style={styles.button}>
+        Register
+      </Button>
+      <Text style={styles.link} onPress={() => navigation.navigate('Login')}>
+        Already have an account? Login here
+      </Text>
     </View>
   );
 };
@@ -66,11 +73,15 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   input: {
-    height: 40,
-    borderColor: 'gray',
-    borderWidth: 1,
     marginBottom: 12,
-    paddingLeft: 8,
+  },
+  button: {
+    marginTop: 16,
+  },
+  link: {
+    marginTop: 16,
+    textAlign: 'center',
+    color: 'blue',
   },
 });
 
