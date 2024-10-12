@@ -26,7 +26,7 @@ class MyApp extends StatelessWidget {
         '/home': (context) => const HomeScreen(),
         '/register': (context) => const RegistrationScreen(),
         '/add_habit': (context) => const AddHabitScreen(),
-        '/habit_detail': (context) => const HabitDetailScreen(habitName: 'Sample Habit'),
+        // Remove the '/habit_detail' route as it now requires a dynamic habitId
       },
     );
   }

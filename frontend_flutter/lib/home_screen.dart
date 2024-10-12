@@ -1,9 +1,68 @@
 import 'package:flutter/material.dart';
 import 'habit_detail_screen.dart';
 import 'add_habit_screen.dart';
+import 'api_service.dart';
+import 'dart:convert';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
+
+  @override
+  _HomeScreenState createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  List<Map<String, dynamic>> _habits = [];
+  bool _isLoading = true;
+  String _username = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserData();
+    _fetchHabits();
+  }
+
+  Future<void> _fetchUserData() async {
+    try {
+      final userId = ApiService.getUserId();
+      if (userId != null) {
+        final response = await ApiService.authenticatedGet('/api/users/$userId/');
+        if (response.statusCode == 200) {
+          final userData = json.decode(response.body);
+          setState(() {
+            _username = userData['username'];
+          });
+        }
+      }
+    } catch (e) {
+      print('Error fetching user data: $e');
+    }
+  }
+
+  Future<void> _fetchHabits() async {
+    try {
+      final habits = await ApiService.getUserHabits();
+      setState(() {
+        _habits = List<Map<String, dynamic>>.from(habits);
+        _isLoading = false;
+      });
+    } catch (e) {
+      print('Error fetching habits: $e');
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _markHabitAsCompleted(String habitId) async {
+    try {
+      await ApiService.markHabitCompleted(habitId);
+      await _fetchHabits(); // Refresh the habits list
+    } catch (e) {
+      print('Error marking habit as completed: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,92 +100,70 @@ class HomeScreen extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Today',
-              style: TextStyle(color: Colors.white, fontSize: 16),
-            ),
-            Text(
-              'Friday, Oct 8',
-              style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-          ],
+        Text(
+          'Today',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         CircleAvatar(
-          radius: 20,
-          backgroundImage: NetworkImage('https://example.com/avatar.jpg'),
+          backgroundColor: Colors.white,
+          child: Icon(Icons.person, color: Colors.pink.shade300),
         ),
       ],
     );
   }
 
   Widget _buildGreeting() {
-    return Container(
-      padding: EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(15),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'RISE AND SHINE, BELLA!',
-            style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'RISE AND SHINE,',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 28,
+            fontWeight: FontWeight.bold,
           ),
-          SizedBox(height: 10),
-          Text(
-            'HOW ARE YOU FEELING TODAY?',
-            style: TextStyle(color: Colors.white, fontSize: 18),
+        ),
+        Text(
+          _username.toUpperCase(),
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 28,
+            fontWeight: FontWeight.bold,
           ),
-          SizedBox(height: 10),
-          Align(
-            alignment: Alignment.centerRight,
-            child: CircleAvatar(
-              backgroundColor: Colors.white,
-              child: Icon(Icons.arrow_forward, color: Colors.orange),
-            ),
+        ),
+        SizedBox(height: 10),
+        Text(
+          'HOW ARE YOU FEELING TODAY?',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 16,
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
   Widget _buildActionButtons(BuildContext context) {
     return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Expanded(
-          child: ElevatedButton.icon(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const AddHabitScreen()),
-              );
-            },
-            icon: Icon(Icons.add),
-            label: Text('Add New Habit'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.white,
-              foregroundColor: Colors.orange,
-              padding: EdgeInsets.symmetric(vertical: 15),
-            ),
-          ),
-        ),
-        SizedBox(width: 10),
-        Expanded(
-          child: ElevatedButton.icon(
-            onPressed: () {
-              // Work Mode functionality remains unchanged
-            },
-            icon: Icon(Icons.work),
-            label: Text('Work Mode'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.white,
-              foregroundColor: Colors.orange,
-              padding: EdgeInsets.symmetric(vertical: 15),
-            ),
+        ElevatedButton.icon(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => AddHabitScreen()),
+            ).then((_) => _fetchHabits());
+          },
+          icon: Icon(Icons.add, color: Colors.pink.shade300),
+          label: Text('Add New Habit', style: TextStyle(color: Colors.pink.shade300)),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.white,
+            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
           ),
         ),
       ],
@@ -134,62 +171,73 @@ class HomeScreen extends StatelessWidget {
   }
 
   Widget _buildRoutine(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Your Routine',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              Icon(Icons.more_horiz),
-            ],
-          ),
-          SizedBox(height: 10),
-          Text('5 Tasks | Morning', style: TextStyle(color: Colors.grey)),
-          SizedBox(height: 15),
-          _buildTaskItem(context, 'Drink 1 glass of water'),
-          SizedBox(height: 10),
-          _buildTaskItem(context, 'Meditate for 10 mins'),
-        ],
+    return Expanded(
+      child: Container(
+        padding: EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(15),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Your Routine',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                Icon(Icons.more_horiz),
+              ],
+            ),
+            SizedBox(height: 10),
+            Text('${_habits.length} Tasks', style: TextStyle(color: Colors.grey)),
+            SizedBox(height: 15),
+            _isLoading
+                ? Center(child: CircularProgressIndicator())
+                : Expanded(
+                    child: ListView.builder(
+                      itemCount: _habits.length,
+                      itemBuilder: (context, index) {
+                        final habit = _habits[index];
+                        return _buildTaskItem(context, habit);
+                      },
+                    ),
+                  ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildTaskItem(BuildContext context, String task) {
+  Widget _buildTaskItem(BuildContext context, Map<String, dynamic> habit) {
     return InkWell(
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => HabitDetailScreen(habitName: task)),
-        );
+          MaterialPageRoute(builder: (context) => HabitDetailScreen(habitId: habit['id'].toString())),
+        ).then((_) => _fetchHabits());
       },
-      child: Row(
-        children: [
-          Icon(Icons.check_circle_outline, color: Colors.grey),
-          SizedBox(width: 10),
-          Expanded(child: Text(task)),
-          ElevatedButton(
-            onPressed: () {
-              // Mark as done functionality remains unchanged
-            },
-            child: Text('Mark as done'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.black,
-              foregroundColor: Colors.white,
-              textStyle: TextStyle(fontSize: 12),
-              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: Row(
+          children: [
+            Icon(Icons.check_circle_outline, color: Colors.grey),
+            SizedBox(width: 10),
+            Expanded(child: Text(habit['habit_name'])),
+            ElevatedButton(
+              onPressed: () => _markHabitAsCompleted(habit['id'].toString()),
+              child: Text('Mark as done'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.black,
+                foregroundColor: Colors.white,
+                textStyle: TextStyle(fontSize: 12),
+                padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

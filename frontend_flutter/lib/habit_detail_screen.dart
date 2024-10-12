@@ -1,9 +1,44 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
 import 'custom_button.dart';
+import 'api_service.dart';
 
-class HabitDetailScreen extends StatelessWidget {
-  final String habitName;
-  const HabitDetailScreen({Key? key, required this.habitName}) : super(key: key);
+class HabitDetailScreen extends StatefulWidget {
+  final String habitId;
+  const HabitDetailScreen({Key? key, required this.habitId}) : super(key: key);
+
+  @override
+  _HabitDetailScreenState createState() => _HabitDetailScreenState();
+}
+
+class _HabitDetailScreenState extends State<HabitDetailScreen> {
+  Map<String, dynamic>? _habitDetails;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchHabitDetails();
+  }
+
+  Future<void> _fetchHabitDetails() async {
+    try {
+      final response = await ApiService.authenticatedGet('/api/habits/${widget.habitId}/detailed/');
+      if (response.statusCode == 200) {
+        setState(() {
+          _habitDetails = json.decode(response.body);
+          _isLoading = false;
+        });
+      } else {
+        throw Exception('Failed to load habit details');
+      }
+    } catch (e) {
+      print('Error fetching habit details: $e');
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -17,21 +52,23 @@ class HabitDetailScreen extends StatelessWidget {
           ),
         ),
         child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _buildHeader(context),
-                const SizedBox(height: 30),
-                _buildHabitDetails(),
-                const SizedBox(height: 30),
-                _buildProgressSection(),
-                const SizedBox(height: 30),
-                _buildActionButtons(),
-              ],
-            ),
-          ),
+          child: _isLoading
+              ? Center(child: CircularProgressIndicator())
+              : SingleChildScrollView(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _buildHeader(context),
+                      const SizedBox(height: 30),
+                      _buildHabitDetails(),
+                      const SizedBox(height: 30),
+                      _buildProgressSection(),
+                      const SizedBox(height: 30),
+                      _buildActionButtons(),
+                    ],
+                  ),
+                ),
         ),
       ),
     );
@@ -46,7 +83,7 @@ class HabitDetailScreen extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
         Text(
-          habitName,
+          _habitDetails?['habit_name'] ?? '',
           style: TextStyle(
             color: Colors.white,
             fontSize: 24,
@@ -74,32 +111,22 @@ class HabitDetailScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Description',
+            'Time & Location',
             style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 10),
           Text(
-            'This is a sample description of the habit.',
+            _habitDetails?['time_location'] ?? '',
             style: TextStyle(color: Colors.white),
           ),
           const SizedBox(height: 20),
           Text(
-            'Frequency',
+            'Identity',
             style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 10),
           Text(
-            'Daily',
-            style: TextStyle(color: Colors.white),
-          ),
-          const SizedBox(height: 20),
-          Text(
-            'Reminder',
-            style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            '8:00 AM',
+            _habitDetails?['identity'] ?? '',
             style: TextStyle(color: Colors.white),
           ),
         ],
@@ -108,6 +135,10 @@ class HabitDetailScreen extends StatelessWidget {
   }
 
   Widget _buildProgressSection() {
+    final streak = _habitDetails?['streak'] ?? {};
+    final currentStreak = streak['current_streak'] ?? 0;
+    final longestStreak = streak['longest_streak'] ?? 0;
+
     return Container(
       padding: EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -122,19 +153,13 @@ class HabitDetailScreen extends StatelessWidget {
             style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 20),
-          LinearProgressIndicator(
-            value: 0.7,
-            backgroundColor: Colors.white.withOpacity(0.3),
-            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+          Text(
+            'Current Streak: $currentStreak days',
+            style: TextStyle(color: Colors.white, fontSize: 16),
           ),
           const SizedBox(height: 10),
           Text(
-            '70% Complete',
-            style: TextStyle(color: Colors.white),
-          ),
-          const SizedBox(height: 20),
-          Text(
-            'Streak: 5 days',
+            'Longest Streak: $longestStreak days',
             style: TextStyle(color: Colors.white, fontSize: 16),
           ),
         ],
@@ -148,17 +173,19 @@ class HabitDetailScreen extends StatelessWidget {
         Expanded(
           child: CustomButton(
             text: 'Mark as Done',
-            onPressed: () {
-              // Handle marking habit as done
-            },
-          ),
-        ),
-        const SizedBox(width: 20),
-        Expanded(
-          child: CustomButton(
-            text: 'Skip',
-            onPressed: () {
-              // Handle skipping habit
+            onPressed: () async {
+              try {
+                final response = await ApiService.authenticatedGet('/api/habits/${widget.habitId}/mark-completed/');
+                if (response.statusCode == 200) {
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Habit marked as completed!')));
+                  _fetchHabitDetails();
+                } else {
+                  throw Exception('Failed to mark habit as completed');
+                }
+              } catch (e) {
+                print('Error marking habit as completed: $e');
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to mark habit as completed')));
+              }
             },
           ),
         ),

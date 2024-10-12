@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'custom_button.dart';
 import 'home_screen.dart';
@@ -21,25 +20,32 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
       try {
-        final response = await http.post(
-          Uri.parse('${ApiService.baseUrl}/api/token/'),
-          headers: {'Content-Type': 'application/json'},
-          body: json.encode({
+        final response = await ApiService.authenticatedPost(
+          '/api/token/',
+          {
             'username': _emailController.text,
             'password': _passwordController.text,
-          }),
+          },
         );
 
         if (response.statusCode == 200) {
           final data = json.decode(response.body);
           final token = data['access'];
-          // Store the token securely (you might want to use a secure storage solution)
           ApiService.setToken(token);
 
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const HomeScreen()),
-          );
+          // Fetch user details to get the user ID
+          final userResponse = await ApiService.authenticatedGet('/api/users/me/');
+          if (userResponse.statusCode == 200) {
+            final userData = json.decode(userResponse.body);
+            ApiService.setUserId(userData['id']);
+
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const HomeScreen()),
+            );
+          } else {
+            throw Exception('Failed to fetch user details');
+          }
         } else {
           setState(() {
             _errorMessage = 'Invalid username or password';
@@ -65,18 +71,21 @@ class _LoginScreenState extends State<LoginScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: 50),
-                Image.network(
-                  'https://flutter.github.io/assets-for-api-docs/assets/widgets/owl.jpg',
-                  height: 200,
+                Text(
+                  'Welcome Back',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 50),
+                const SizedBox(height: 30),
                 TextFormField(
                   controller: _emailController,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Email',
                     border: OutlineInputBorder(),
                   ),
-                  keyboardType: TextInputType.emailAddress,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter your email';
@@ -87,7 +96,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 20),
                 TextFormField(
                   controller: _passwordController,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Password',
                     border: OutlineInputBorder(),
                   ),
