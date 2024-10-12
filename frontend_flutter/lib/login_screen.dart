@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'custom_button.dart';
+import 'home_screen.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -38,8 +39,11 @@ class LoginScreen extends StatelessWidget {
               CustomButton(
                 text: 'Login',
                 onPressed: () {
-                  // Implement login logic here
-                  print('Login button pressed');
+                  // Navigate to HomeScreen when login button is pressed
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const HomeScreen()),
+                  );
                 },
               ),
             ],
