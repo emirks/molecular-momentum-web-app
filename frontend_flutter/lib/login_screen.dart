@@ -39,12 +39,18 @@ class LoginScreen extends StatelessWidget {
               CustomButton(
                 text: 'Login',
                 onPressed: () {
-                  // Navigate to HomeScreen when login button is pressed
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(builder: (context) => const HomeScreen()),
                   );
                 },
+              ),
+              const SizedBox(height: 20),
+              TextButton(
+                onPressed: () {
+                  Navigator.pushNamed(context, '/register');
+                },
+                child: Text('Don\'t have an account? Register'),
               ),
             ],
           ),

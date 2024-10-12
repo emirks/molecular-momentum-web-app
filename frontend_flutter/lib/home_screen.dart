@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'habit_detail_screen.dart';
+import 'add_habit_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -24,9 +26,9 @@ class HomeScreen extends StatelessWidget {
                 const SizedBox(height: 20),
                 _buildGreeting(),
                 const SizedBox(height: 20),
-                _buildActionButtons(),
+                _buildActionButtons(context),
                 const SizedBox(height: 20),
-                _buildRoutine(),
+                _buildRoutine(context),
               ],
             ),
           ),
@@ -92,14 +94,19 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildActionButtons() {
+  Widget _buildActionButtons(BuildContext context) {
     return Row(
       children: [
         Expanded(
           child: ElevatedButton.icon(
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const AddHabitScreen()),
+              );
+            },
             icon: Icon(Icons.add),
-            label: Text('Add New Task'),
+            label: Text('Add New Habit'),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.white,
               foregroundColor: Colors.orange,
@@ -110,7 +117,9 @@ class HomeScreen extends StatelessWidget {
         SizedBox(width: 10),
         Expanded(
           child: ElevatedButton.icon(
-            onPressed: () {},
+            onPressed: () {
+              // Work Mode functionality remains unchanged
+            },
             icon: Icon(Icons.work),
             label: Text('Work Mode'),
             style: ElevatedButton.styleFrom(
@@ -124,7 +133,7 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildRoutine() {
+  Widget _buildRoutine(BuildContext context) {
     return Container(
       padding: EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -147,31 +156,41 @@ class HomeScreen extends StatelessWidget {
           SizedBox(height: 10),
           Text('5 Tasks | Morning', style: TextStyle(color: Colors.grey)),
           SizedBox(height: 15),
-          _buildTaskItem('Drink 1 glass of water'),
+          _buildTaskItem(context, 'Drink 1 glass of water'),
           SizedBox(height: 10),
-          _buildTaskItem('Meditate for 10 mins'),
+          _buildTaskItem(context, 'Meditate for 10 mins'),
         ],
       ),
     );
   }
 
-  Widget _buildTaskItem(String task) {
-    return Row(
-      children: [
-        Icon(Icons.check_circle_outline, color: Colors.grey),
-        SizedBox(width: 10),
-        Expanded(child: Text(task)),
-        ElevatedButton(
-          onPressed: () {},
-          child: Text('Mark as done'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.black,
-            foregroundColor: Colors.white,
-            textStyle: TextStyle(fontSize: 12),
-            padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+  Widget _buildTaskItem(BuildContext context, String task) {
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => HabitDetailScreen(habitName: task)),
+        );
+      },
+      child: Row(
+        children: [
+          Icon(Icons.check_circle_outline, color: Colors.grey),
+          SizedBox(width: 10),
+          Expanded(child: Text(task)),
+          ElevatedButton(
+            onPressed: () {
+              // Mark as done functionality remains unchanged
+            },
+            child: Text('Mark as done'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.black,
+              foregroundColor: Colors.white,
+              textStyle: TextStyle(fontSize: 12),
+              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
