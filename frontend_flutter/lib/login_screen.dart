@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'custom_button.dart';
 import 'home_screen.dart';
 import 'api_service.dart';
+import 'dart:developer' as developer;
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -20,29 +21,45 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
       try {
+        print('Attempting to log in with username: ${_emailController.text}');
         final response = await ApiService.authenticatedPost(
           '/api/token/',
           {
             'username': _emailController.text,
             'password': _passwordController.text,
           },
+          requiresToken: false
         );
+
+        print('Login response status code: ${response.statusCode}');
+        print('Login response body: ${response.body}');
 
         if (response.statusCode == 200) {
           final data = json.decode(response.body);
           final token = data['access'];
           ApiService.setToken(token);
 
-          // Fetch user details to get the user ID
-          final userResponse = await ApiService.authenticatedGet('/api/users/me/');
-          if (userResponse.statusCode == 200) {
-            final userData = json.decode(userResponse.body);
-            ApiService.setUserId(userData['id']);
+          print('Token received and set');
 
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const HomeScreen()),
-            );
+          // Fetch user details
+          final userResponse = await ApiService.authenticatedGet('/api/users/');
+          print('User details response status code: ${userResponse.statusCode}');
+          print('User details response body: ${userResponse.body}');
+
+          if (userResponse.statusCode == 200) {
+            final List<dynamic> users = json.decode(userResponse.body);
+            if (users.isNotEmpty) {
+              final userData = users[0]; // Assuming the first user is the current user
+              ApiService.setUserId(userData['id']);
+              print('User ID set: ${userData['id']}');
+
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const HomeScreen()),
+              );
+            } else {
+              throw Exception('No user data found');
+            }
           } else {
             throw Exception('Failed to fetch user details');
           }
@@ -52,6 +69,7 @@ class _LoginScreenState extends State<LoginScreen> {
           });
         }
       } catch (e) {
+        print('Error during login: $e');
         setState(() {
           _errorMessage = 'An error occurred. Please try again.';
         });

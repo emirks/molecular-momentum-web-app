@@ -36,19 +36,31 @@ class ApiService {
     );
   }
 
-  static Future<http.Response> authenticatedPost(String endpoint, dynamic data) async {
-    final token = getToken();
-    if (token == null) {
-      throw Exception('No token available');
+  static Future<http.Response> authenticatedPost(String endpoint, dynamic data, {bool requiresToken = true}) async {
+    print('Sending POST request to: $baseUrl$endpoint');
+    print('Request body: ${json.encode(data)}');
+    
+    Map<String, String> headers = {
+      'Content-Type': 'application/json',
+    };
+
+    if (requiresToken) {
+      final token = getToken();
+      if (token == null) {
+        throw Exception('No token available');
+      }
+      headers['Authorization'] = 'Bearer $token';
     }
-    return await http.post(
+
+    final response = await http.post(
       Uri.parse('$baseUrl$endpoint'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
+      headers: headers,
       body: json.encode(data),
     );
+    
+    print('Response status code: ${response.statusCode}');
+    print('Response body: ${response.body}');
+    return response;
   }
 
   static Future<List<dynamic>> getUserHabits() async {
@@ -68,11 +80,16 @@ class ApiService {
   }
 
   static Future<Map<String, dynamic>> createHabit(Map<String, dynamic> habitData) async {
+    final userId = getUserId();
+    if (userId == null) {
+      throw Exception('User ID not available');
+    }
+    habitData['user'] = userId;
     final response = await authenticatedPost('/api/habits/', habitData);
     if (response.statusCode == 201) {
       return json.decode(response.body);
     } else {
-      throw Exception('Failed to create habit');
+      throw Exception('Failed to create habit: ${response.body}');
     }
   }
 
