@@ -5,6 +5,8 @@ services:
     image: postgres:13
     volumes:
       - ./postgres_data:/var/lib/postgresql/data
+    ports:
+    - "0.0.0.0:5432:5432"
     environment:
       - POSTGRES_DB=${DB_NAME}
       - POSTGRES_USER=${DB_USER}
@@ -17,7 +19,7 @@ services:
       - ./backend:/code
       - ./data_dump.json:/code/data_dump.json
     ports:
-      - "8000:8000"
+      - "0.0.0.0:8000:8000"
     environment:
       - DB_NAME=${DB_NAME}
       - DB_USER=${DB_USER}
