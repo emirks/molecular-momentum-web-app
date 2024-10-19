@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'dart:convert';
 import 'custom_button.dart';
-import 'api_service.dart';
+import 'services/habit_service.dart';
 
 class HabitDetailScreen extends StatefulWidget {
   final String habitId;
@@ -23,15 +22,11 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
 
   Future<void> _fetchHabitDetails() async {
     try {
-      final response = await ApiService.authenticatedGet('/api/habits/${widget.habitId}/detailed/');
-      if (response.statusCode == 200) {
-        setState(() {
-          _habitDetails = json.decode(response.body);
-          _isLoading = false;
-        });
-      } else {
-        throw Exception('Failed to load habit details');
-      }
+      final habitDetails = await HabitService.getDetailedHabit(widget.habitId);
+      setState(() {
+        _habitDetails = habitDetails;
+        _isLoading = false;
+      });
     } catch (e) {
       print('Error fetching habit details: $e');
       setState(() {
@@ -175,7 +170,7 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
             text: 'Mark as Done',
             onPressed: () async {
               try {
-                await ApiService.markHabitCompleted(widget.habitId);
+                await HabitService.markHabitCompleted(widget.habitId);
                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Habit marked as completed!')));
                 _fetchHabitDetails();
               } catch (e) {

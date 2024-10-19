@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'custom_button.dart';
-import 'api_service.dart';
+import 'services/habit_service.dart';
 
 
 class AddHabitScreen extends StatefulWidget {
@@ -200,7 +200,7 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
           'reminder_time': '${_reminderTime.hour}:${_reminderTime.minute}',
         };
         
-        await ApiService.createHabit(habitData);
+        await HabitService.createHabit(habitData);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Habit added successfully!')),
         );

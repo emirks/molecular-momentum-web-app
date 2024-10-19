@@ -127,15 +127,7 @@ class _HomeScreenState extends State<HomeScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'RISE AND SHINE,',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 28,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        Text(
-          _username.toUpperCase(),
+          'Rise and Shine, ' + _username,
           style: TextStyle(
             color: Colors.white,
             fontSize: 28,
@@ -144,7 +136,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         SizedBox(height: 10),
         Text(
-          'HOW ARE YOU FEELING TODAY?',
+          'How are you today?',
           style: TextStyle(
             color: Colors.white,
             fontSize: 16,
@@ -191,14 +183,14 @@ class _HomeScreenState extends State<HomeScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Your Routine',
+                  'Your Habits',
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 Icon(Icons.more_horiz),
               ],
             ),
             SizedBox(height: 10),
-            Text('${_habits.length} Tasks', style: TextStyle(color: Colors.grey)),
+            Text('${_habits.length} Habits', style: TextStyle(color: Colors.grey)),
             SizedBox(height: 15),
             _isLoading
                 ? Center(child: CircularProgressIndicator())
