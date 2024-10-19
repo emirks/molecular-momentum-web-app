@@ -1,8 +1,29 @@
 import 'package:flutter/material.dart';
 import 'custom_button.dart';
+import 'api_service.dart';
 
-class AddHabitScreen extends StatelessWidget {
+
+class AddHabitScreen extends StatefulWidget {
   const AddHabitScreen({Key? key}) : super(key: key);
+
+  @override
+  _AddHabitScreenState createState() => _AddHabitScreenState();
+}
+
+class _AddHabitScreenState extends State<AddHabitScreen> {
+  // Add state variables and controllers here
+  final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
+  final _descriptionController = TextEditingController();
+  String _frequency = 'Daily';
+  TimeOfDay _reminderTime = TimeOfDay.now();
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _descriptionController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,47 +75,48 @@ class AddHabitScreen extends StatelessWidget {
   }
 
   Widget _buildHabitForm(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(15),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildTextField('Habit Name'),
-          const SizedBox(height: 15),
-          _buildTextField('Description'),
-          const SizedBox(height: 15),
-          Text(
-            'Frequency',
-            style: TextStyle(color: Colors.white, fontSize: 16),
-          ),
-          const SizedBox(height: 10),
-          _buildFrequencyButtons(),
-          const SizedBox(height: 15),
-          Text(
-            'Reminder Time',
-            style: TextStyle(color: Colors.white, fontSize: 16),
-          ),
-          const SizedBox(height: 10),
-          _buildTimePicker(context),
-          const SizedBox(height: 30),
-          CustomButton(
-            text: 'Add Habit',
-            onPressed: () {
-              // Handle adding habit logic here
-              Navigator.pop(context);
-            },
-          ),
-        ],
+    return Form(
+      key: _formKey,
+      child: Container(
+        padding: EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.2),
+          borderRadius: BorderRadius.circular(15),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildTextField('Habit Name', _nameController),
+            const SizedBox(height: 15),
+            _buildTextField('Description', _descriptionController),
+            const SizedBox(height: 15),
+            Text(
+              'Frequency',
+              style: TextStyle(color: Colors.white, fontSize: 16),
+            ),
+            const SizedBox(height: 10),
+            _buildFrequencyButtons(),
+            const SizedBox(height: 15),
+            Text(
+              'Reminder Time',
+              style: TextStyle(color: Colors.white, fontSize: 16),
+            ),
+            const SizedBox(height: 10),
+            _buildTimePicker(context),
+            const SizedBox(height: 30),
+            CustomButton(
+              text: 'Add Habit',
+              onPressed: _addHabit,
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildTextField(String label) {
-    return TextField(
+  Widget _buildTextField(String label, TextEditingController controller) {
+    return TextFormField(
+      controller: controller,
       decoration: InputDecoration(
         labelText: label,
         labelStyle: TextStyle(color: Colors.white),
@@ -108,27 +130,31 @@ class AddHabitScreen extends StatelessWidget {
         ),
       ),
       style: TextStyle(color: Colors.white),
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Please enter $label';
+        }
+        return null;
+      },
     );
   }
 
   Widget _buildFrequencyButtons() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: [
-        _buildFrequencyButton('Daily'),
-        _buildFrequencyButton('Weekly'),
-        _buildFrequencyButton('Monthly'),
-      ],
+      children: ['Daily', 'Weekly', 'Monthly'].map((freq) => 
+        _buildFrequencyButton(freq)
+      ).toList(),
     );
   }
 
   Widget _buildFrequencyButton(String text) {
     return ElevatedButton(
-      onPressed: () {},
+      onPressed: () => setState(() => _frequency = text),
       child: Text(text),
       style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.orange,
+        backgroundColor: _frequency == text ? Colors.orange : Colors.white,
+        foregroundColor: _frequency == text ? Colors.white : Colors.orange,
       ),
     );
   }
@@ -138,9 +164,11 @@ class AddHabitScreen extends StatelessWidget {
       onTap: () async {
         TimeOfDay? selectedTime = await showTimePicker(
           context: context,
-          initialTime: TimeOfDay.now(),
+          initialTime: _reminderTime,
         );
-        // Handle selected time
+        if (selectedTime != null) {
+          setState(() => _reminderTime = selectedTime);
+        }
       },
       child: Container(
         padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
@@ -152,7 +180,7 @@ class AddHabitScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Select Time',
+              _reminderTime.format(context),
               style: TextStyle(color: Colors.white),
             ),
             Icon(Icons.access_time, color: Colors.white),
@@ -160,5 +188,29 @@ class AddHabitScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _addHabit() async {
+    if (_formKey.currentState!.validate()) {
+      try {
+        final habitData = {
+          'habit_name': _nameController.text,
+          'description': _descriptionController.text,
+          'frequency': _frequency,
+          'reminder_time': '${_reminderTime.hour}:${_reminderTime.minute}',
+        };
+        
+        await ApiService.createHabit(habitData);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Habit added successfully!')),
+        );
+        Navigator.pop(context);
+      } catch (e) {
+        print('Error adding habit: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to add habit. Please try again.')),
+        );
+      }
+    }
   }
 }

@@ -175,13 +175,9 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
             text: 'Mark as Done',
             onPressed: () async {
               try {
-                final response = await ApiService.authenticatedGet('/api/habits/${widget.habitId}/mark-completed/');
-                if (response.statusCode == 200) {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Habit marked as completed!')));
-                  _fetchHabitDetails();
-                } else {
-                  throw Exception('Failed to mark habit as completed');
-                }
+                await ApiService.markHabitCompleted(widget.habitId);
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Habit marked as completed!')));
+                _fetchHabitDetails();
               } catch (e) {
                 print('Error marking habit as completed: $e');
                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to mark habit as completed')));
