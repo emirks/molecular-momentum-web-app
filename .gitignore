@@ -4,3 +4,4 @@
 *.log
 /backend/habit_tracker_app/migrations/
 .env*
+postgres_data/

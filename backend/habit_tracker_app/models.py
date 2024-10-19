@@ -47,6 +47,7 @@ class HabitCompletion(models.Model):
         db_table = 'habit_completions'
 
 class HabitStreak(models.Model):
+    id = models.BigAutoField(primary_key=True)
     habit = models.OneToOneField(Habit, on_delete=models.CASCADE, related_name='streak')
     current_streak = models.IntegerField(default=0)
     longest_streak = models.IntegerField(default=0)

@@ -17,6 +17,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Install Python dependencies
 COPY requirements.txt /code/
 RUN pip install --upgrade pip
+RUN pip install psycopg2-binary
 RUN pip install -r requirements.txt
 
 # Copy project
