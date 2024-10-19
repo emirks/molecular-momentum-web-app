@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'habit_detail_screen.dart';
 import 'add_habit_screen.dart';
-import 'api_service.dart';
-import 'dart:convert';
+import 'services/api_service.dart';
+import 'services/habit_service.dart';
+import 'services/user_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -19,21 +20,26 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _fetchUserData();
-    _fetchHabits();
+    _fetchData();
+  }
+
+  Future<void> _fetchData() async {
+    if (ApiService.isUserIdSet()) {
+      await _fetchUserData();
+      await _fetchHabits();
+    } else {
+      // If user ID is not set, navigate back to login screen
+      Navigator.of(context).pushReplacementNamed('/login');
+    }
   }
 
   Future<void> _fetchUserData() async {
     try {
-      final userId = ApiService.getUserId();
-      if (userId != null) {
-        final response = await ApiService.authenticatedGet('/api/users/$userId/');
-        if (response.statusCode == 200) {
-          final userData = json.decode(response.body);
-          setState(() {
-            _username = userData['username'];
-          });
-        }
+      final userData = await UserService.getCurrentUserDetails();
+      if (userData != null) {
+        setState(() {
+          _username = userData['username'];
+        });
       }
     } catch (e) {
       print('Error fetching user data: $e');
@@ -42,7 +48,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _fetchHabits() async {
     try {
-      final habits = await ApiService.getUserHabits();
+      final habits = await HabitService.getUserHabits();
       setState(() {
         _habits = List<Map<String, dynamic>>.from(habits);
         _isLoading = false;
@@ -57,7 +63,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _markHabitAsCompleted(String habitId) async {
     try {
-      await ApiService.markHabitCompleted(habitId);
+      await HabitService.markHabitCompleted(habitId);
       await _fetchHabits(); // Refresh the habits list
     } catch (e) {
       print('Error marking habit as completed: $e');

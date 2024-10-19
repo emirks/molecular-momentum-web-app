@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'dart:convert';
 import 'custom_button.dart';
 import 'home_screen.dart';
-import 'api_service.dart';
-import 'dart:developer' as developer;
+import 'services/api_service.dart';
+import 'services/user_service.dart';
+import 'services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -21,51 +21,32 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
       try {
-        print('Attempting to log in with username: ${_emailController.text}');
-        final response = await ApiService.authenticatedPost(
-          '/api/token/',
-          {
-            'username': _emailController.text,
-            'password': _passwordController.text,
-          },
-          requiresToken: false
+        final loginResult = await AuthService.login(
+          _emailController.text,
+          _passwordController.text,
         );
 
-        print('Login response status code: ${response.statusCode}');
-        print('Login response body: ${response.body}');
+        print('Login result: $loginResult');
 
-        if (response.statusCode == 200) {
-          final data = json.decode(response.body);
-          final token = data['access'];
-          ApiService.setToken(token);
-
-          print('Token received and set');
-
-          // Fetch user details using the token
-          final userResponse = await ApiService.authenticatedGet('/api/users/');
-          print('User details response status code: ${userResponse.statusCode}');
-          print('User details response body: ${userResponse.body}');
-
-          if (userResponse.statusCode == 200) {
-            final List<dynamic> users = json.decode(userResponse.body);
-            final userData = users.firstWhere(
-              (user) => user['username'] == _emailController.text,
-              orElse: () => null,
-            );
-
-            if (userData != null) {
-              ApiService.setUserId(userData['id']);
-              print('User ID set: ${userData['id']}');
-
+        if (loginResult) {
+          final userData = await UserService.getCurrentUserDetails();
+          print('User data: $userData');
+          
+          if (userData != null && userData['id'] != null) {
+            ApiService.setUserId(userData['id']);
+            print('User ID set: ${ApiService.getUserId()}');
+            
+            // Ensure the user ID is set before navigating
+            if (ApiService.isUserIdSet()) {
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(builder: (context) => const HomeScreen()),
               );
             } else {
-              throw Exception('User not found');
+              throw Exception('Failed to set user ID');
             }
           } else {
-            throw Exception('Failed to fetch user details');
+            throw Exception('User data or ID is null');
           }
         } else {
           setState(() {
