@@ -3,3 +3,4 @@
 *.sqlite3
 *.log
 /backend/habit_tracker_app/migrations/
+.env*
