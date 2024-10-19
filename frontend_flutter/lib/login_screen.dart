@@ -41,15 +41,19 @@ class _LoginScreenState extends State<LoginScreen> {
 
           print('Token received and set');
 
-          // Fetch user details
+          // Fetch user details using the token
           final userResponse = await ApiService.authenticatedGet('/api/users/');
           print('User details response status code: ${userResponse.statusCode}');
           print('User details response body: ${userResponse.body}');
 
           if (userResponse.statusCode == 200) {
             final List<dynamic> users = json.decode(userResponse.body);
-            if (users.isNotEmpty) {
-              final userData = users[0]; // Assuming the first user is the current user
+            final userData = users.firstWhere(
+              (user) => user['username'] == _emailController.text,
+              orElse: () => null,
+            );
+
+            if (userData != null) {
               ApiService.setUserId(userData['id']);
               print('User ID set: ${userData['id']}');
 
@@ -58,7 +62,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 MaterialPageRoute(builder: (context) => const HomeScreen()),
               );
             } else {
-              throw Exception('No user data found');
+              throw Exception('User not found');
             }
           } else {
             throw Exception('Failed to fetch user details');
