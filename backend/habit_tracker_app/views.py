@@ -50,6 +50,12 @@ class UserViewSet(viewsets.ModelViewSet):
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
+    @action(detail=False, methods=['get'])
+    def me(self, request):
+        serializer = self.get_serializer(request.user)
+        logger.info(f"User {request.user.username} retrieved their own details")
+        return Response(serializer.data)
+
 class TrackingChannelViewSet(viewsets.ModelViewSet):
     queryset = TrackingChannel.objects.all()
     serializer_class = TrackingChannelSerializer

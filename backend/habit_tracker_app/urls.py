@@ -23,4 +23,5 @@ urlpatterns = [
     path('channels/<uuid:pk>/detailed/', TrackingChannelViewSet.as_view({'get': 'detailed'}), name='channel-detailed'),
     path('channels/<uuid:pk>/add-user/', TrackingChannelViewSet.as_view({'post': 'add_user'}), name='channel-add-user'),
     path('streaks/reset/', HabitStreakViewSet.as_view({'post': 'reset_streak'}), name='streak-reset'),
+    path('users/me/', UserViewSet.as_view({'get': 'me'}), name='user-me'),
 ]
