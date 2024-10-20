@@ -26,6 +26,10 @@ class ApiService {
     return _userId != null;
   }
 
+  static void clearUserId() {
+    _userId = null;
+  }
+
   static Future<http.Response> authenticatedGet(String endpoint) async {
     final token = getToken();
     print('Token for request: $token'); // Add this line
@@ -59,6 +63,35 @@ class ApiService {
       headers: headers,
       body: json.encode(data),
     );
+    
+    print('Sending POST request to: $baseUrl$endpoint');
+    print('Request headers: $headers');
+    print('Request body: ${json.encode(data)}');
+    print('Response status: ${response.statusCode}');
+    print('Response body: ${response.body}');
+    
+    return response;
+  }
+
+  static Future<http.Response> authenticatedPut(String endpoint, dynamic data) async {
+    final token = getToken();
+    if (token == null) {
+      throw Exception('No token available');
+    }
+    final response = await http.put(
+      Uri.parse('$baseUrl$endpoint'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: json.encode(data),
+    );
+    
+    print('Sending PUT request to: $baseUrl$endpoint');
+    print('Request headers: ${response.request?.headers}');
+    print('Request body: ${json.encode(data)}');
+    print('Response status: ${response.statusCode}');
+    print('Response body: ${response.body}');
     
     return response;
   }

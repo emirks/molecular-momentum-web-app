@@ -23,7 +23,7 @@ class UserService {
   static Future<Map<String, dynamic>?> getCurrentUserDetails() async {
     try {
       final response = await ApiService.authenticatedGet('/api/users/me/');
-      print('getCurrentUserDetails response: ${response.statusCode}, ${response.body}'); // Add this line
+      print('getCurrentUserDetails response: ${response.statusCode}, ${response.body}');
       if (response.statusCode == 200) {
         return json.decode(response.body);
       } else {
@@ -33,6 +33,19 @@ class UserService {
     } catch (e) {
       print('Error getting user details: $e');
       return null;
+    }
+  }
+
+  static Future<void> updateUserProfile(Map<String, dynamic> userData) async {
+    try {
+      final response = await ApiService.authenticatedPut('/api/users/me/', userData);
+      if (response.statusCode != 200) {
+        final errorBody = json.decode(response.body);
+        throw Exception(errorBody['detail'] ?? 'Failed to update user profile');
+      }
+    } catch (e) {
+      print('Error updating user profile: $e');
+      throw Exception('Failed to update user profile: ${e.toString()}');
     }
   }
 }

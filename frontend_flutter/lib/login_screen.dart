@@ -31,23 +31,14 @@ class _LoginScreenState extends State<LoginScreen> {
 
         if (loginResult) {
           final userData = await UserService.getCurrentUserDetails();
-          print('User data: $userData');
-          
           if (userData != null && userData['id'] != null) {
             ApiService.setUserId(userData['id']);
-            print('User ID set: ${ApiService.getUserId()}');
-            
-            // Ensure the user ID is set before navigating
-            if (ApiService.isUserIdSet()) {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => const HomeScreen()),
-              );
-            } else {
-              throw Exception('Failed to set user ID');
-            }
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (context) => HomeScreen()),
+              (Route<dynamic> route) => false,
+            );
           } else {
-            throw Exception('User data or ID is null');
+            throw Exception('Failed to get user details after login');
           }
         } else {
           setState(() {

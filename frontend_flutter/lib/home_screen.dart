@@ -4,6 +4,7 @@ import 'add_habit_screen.dart';
 import 'services/api_service.dart';
 import 'services/habit_service.dart';
 import 'services/user_service.dart';
+import 'settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -73,36 +74,41 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Colors.pink.shade300, Colors.orange.shade300],
-          ),
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildHeader(),
-                const SizedBox(height: 20),
-                _buildGreeting(),
-                const SizedBox(height: 20),
-                _buildActionButtons(context),
-                const SizedBox(height: 20),
-                _buildRoutine(context),
-              ],
+      endDrawer: _buildSidebar(),
+      body: Builder(
+        builder: (BuildContext context) {
+          return Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Colors.pink.shade300, Colors.orange.shade300],
+              ),
             ),
-          ),
-        ),
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildHeader(context),
+                    const SizedBox(height: 20),
+                    _buildGreeting(),
+                    const SizedBox(height: 20),
+                    _buildActionButtons(context),
+                    const SizedBox(height: 20),
+                    _buildRoutine(context),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -114,9 +120,11 @@ class _HomeScreenState extends State<HomeScreen> {
             fontWeight: FontWeight.bold,
           ),
         ),
-        CircleAvatar(
-          backgroundColor: Colors.white,
-          child: Icon(Icons.person, color: Colors.pink.shade300),
+        IconButton(
+          icon: Icon(Icons.menu, color: Colors.white),
+          onPressed: () {
+            Scaffold.of(context).openEndDrawer();
+          },
         ),
       ],
     );
@@ -236,6 +244,47 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildSidebar() {
+    return Drawer(
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: <Widget>[
+          DrawerHeader(
+            decoration: BoxDecoration(
+              color: Colors.pink.shade300,
+            ),
+            child: Text(
+              'Menu',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 24,
+              ),
+            ),
+          ),
+          ListTile(
+            leading: Icon(Icons.settings),
+            title: Text('Settings'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => SettingsScreen()),
+              );
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.exit_to_app),
+            title: Text('Logout'),
+            onTap: () async {
+              ApiService.clearUserId();
+              // await AuthService.logout(); // Add this line if you have a logout method in AuthService
+              Navigator.of(context).pushReplacementNamed('/login');
+            },
+          ),
+        ],
       ),
     );
   }
