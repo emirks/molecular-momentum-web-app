@@ -118,9 +118,15 @@ class HabitViewSet(viewsets.ModelViewSet):
 
     def get_available_tracking_channel(self, user):
         # Check if there is a tracking channel with less than 8 habits
-        available_channel = TrackingChannel.objects.annotate(habit_count=models.Count('habits')).filter(habit_count__lt=8, users=user).first()
+        available_channel = TrackingChannel.objects.annotate(
+            habit_count=models.Count('habits')
+        ).filter(
+            habit_count__lt=8
+        ).order_by('habit_count').first()
 
         if available_channel:
+            if user not in available_channel.users.all():
+                available_channel.users.add(user)
             return available_channel
         else:
             # Create a new tracking channel
