@@ -30,7 +30,7 @@ SECRET_KEY = os.environ['SECRET_KEY']
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', 'molecularmomentum.duckdns.org', '212.154.66.167', 'molecular-momentum-web-app.onrender.com', '46.101.165.181']
+ALLOWED_HOSTS = ['localhost', 'molecularmomentum.duckdns.org', '212.154.66.167', 'molecular-momentum-web-app.onrender.com', '46.101.165.181', '10.0.2.2']
 
 
 # Application definition

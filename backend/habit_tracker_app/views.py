@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from django.db import models
 from .models import User, TrackingChannel, Habit, HabitCompletion, HabitStreak
 from .serializers import (
     UserSerializer, TrackingChannelSerializer, HabitSerializer, 
@@ -110,6 +111,23 @@ class HabitViewSet(viewsets.ModelViewSet):
     serializer_class = HabitSerializer
     permission_classes = [IsAuthenticated]
 
+    def perform_create(self, serializer):
+        user = self.request.user
+        tracking_channel = self.get_available_tracking_channel(user)
+        serializer.save(user=user, tracking_channel=tracking_channel)
+
+    def get_available_tracking_channel(self, user):
+        # Check if there is a tracking channel with less than 8 habits
+        available_channel = TrackingChannel.objects.annotate(habit_count=models.Count('habits')).filter(habit_count__lt=8, users=user).first()
+
+        if available_channel:
+            return available_channel
+        else:
+            # Create a new tracking channel
+            new_channel = TrackingChannel.objects.create(name=f"Tracking Channel {timezone.now()}")
+            new_channel.users.add(user)
+            return new_channel
+
     def list(self, request):
         logger.info(f"User {request.user.username} retrieved habit list")
         return super().list(request)
@@ -177,4 +195,3 @@ class HabitStreakViewSet(viewsets.ModelViewSet):
         logger.info(f"User {request.user.username} reset streak for habit {habit_id}")
         serializer = self.get_serializer(streak)
         return Response(serializer.data)
-
