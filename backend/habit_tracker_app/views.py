@@ -50,11 +50,19 @@ class UserViewSet(viewsets.ModelViewSet):
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get', 'put'])
     def me(self, request):
-        serializer = self.get_serializer(request.user)
-        logger.info(f"User {request.user.username} retrieved their own details")
-        return Response(serializer.data)
+        if request.method == 'GET':
+            serializer = self.get_serializer(request.user)
+            logger.info(f"User {request.user.username} retrieved their own details")
+            return Response(serializer.data)
+        elif request.method == 'PUT':
+            serializer = self.get_serializer(request.user, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                logger.info(f"User {request.user.username} updated their profile")
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class TrackingChannelViewSet(viewsets.ModelViewSet):
     queryset = TrackingChannel.objects.all()
