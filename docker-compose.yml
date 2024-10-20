@@ -14,7 +14,7 @@ services:
 
   web:
     build: ./backend
-    command: python manage.py runserver 0.0.0.0:8000
+    command: gunicorn backend.wsgi:application --bind 0.0.0.0:8000
     volumes:
       - ./backend:/code
       - ./data_dump.json:/code/data_dump.json
