@@ -14,14 +14,16 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
   // Add state variables and controllers here
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
-  final _descriptionController = TextEditingController();
+  final _timeLocationController = TextEditingController();
+  final _identityController = TextEditingController();
   String _frequency = 'Daily';
   TimeOfDay _reminderTime = TimeOfDay.now();
 
   @override
   void dispose() {
     _nameController.dispose();
-    _descriptionController.dispose();
+    _timeLocationController.dispose();
+    _identityController.dispose();
     super.dispose();
   }
 
@@ -77,74 +79,99 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
   Widget _buildHabitForm(BuildContext context) {
     return Form(
       key: _formKey,
-      child: Container(
-        padding: EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.2),
-          borderRadius: BorderRadius.circular(15),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildTextField('Habit Name', _nameController),
-            const SizedBox(height: 15),
-            _buildTextField('Description', _descriptionController),
-            const SizedBox(height: 15),
-            Text(
-              'Frequency',
-              style: TextStyle(color: Colors.white, fontSize: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          TextFormField(
+            controller: _nameController,
+            decoration: InputDecoration(
+              labelText: 'Habit Name',
+              labelStyle: TextStyle(color: Colors.white),
+              enabledBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.white),
+              ),
+              focusedBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.white),
+              ),
             ),
-            const SizedBox(height: 10),
-            _buildFrequencyButtons(),
-            const SizedBox(height: 15),
-            Text(
-              'Reminder Time',
-              style: TextStyle(color: Colors.white, fontSize: 16),
+            style: TextStyle(color: Colors.white),
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Please enter a habit name';
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 20),
+          TextFormField(
+            controller: _timeLocationController,
+            decoration: InputDecoration(
+              labelText: 'Time and Location',
+              labelStyle: TextStyle(color: Colors.white),
+              enabledBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.white),
+              ),
+              focusedBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.white),
+              ),
             ),
-            const SizedBox(height: 10),
-            _buildTimePicker(context),
-            const SizedBox(height: 30),
-            CustomButton(
-              text: 'Add Habit',
-              onPressed: _addHabit,
+            style: TextStyle(color: Colors.white),
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Please enter a time and location';
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 20),
+          TextFormField(
+            controller: _identityController,
+            decoration: InputDecoration(
+              labelText: 'Identity',
+              labelStyle: TextStyle(color: Colors.white),
+              enabledBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.white),
+              ),
+              focusedBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.white),
+              ),
             ),
-          ],
-        ),
+            style: TextStyle(color: Colors.white),
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Please enter an identity';
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 20),
+          Text(
+            'Frequency',
+            style: TextStyle(color: Colors.white, fontSize: 18),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _buildFrequencyButton('Daily'),
+              _buildFrequencyButton('Weekly'),
+              _buildFrequencyButton('Monthly'),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Text(
+            'Reminder Time',
+            style: TextStyle(color: Colors.white, fontSize: 18),
+          ),
+          const SizedBox(height: 10),
+          _buildTimePicker(context),
+          const SizedBox(height: 30),
+          CustomButton(
+            text: 'Add Habit',
+            onPressed: _addHabit,
+          ),
+        ],
       ),
-    );
-  }
-
-  Widget _buildTextField(String label, TextEditingController controller) {
-    return TextFormField(
-      controller: controller,
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: TextStyle(color: Colors.white),
-        enabledBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Colors.white),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Colors.white),
-          borderRadius: BorderRadius.circular(10),
-        ),
-      ),
-      style: TextStyle(color: Colors.white),
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Please enter $label';
-        }
-        return null;
-      },
-    );
-  }
-
-  Widget _buildFrequencyButtons() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: ['Daily', 'Weekly', 'Monthly'].map((freq) => 
-        _buildFrequencyButton(freq)
-      ).toList(),
     );
   }
 
@@ -195,9 +222,10 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
       try {
         final habitData = {
           'habit_name': _nameController.text,
-          'description': _descriptionController.text,
           'frequency': _frequency,
           'reminder_time': '${_reminderTime.hour}:${_reminderTime.minute}',
+          'time_location': _timeLocationController.text,
+          'identity': _identityController.text,
         };
         
         await HabitService.createHabit(habitData);

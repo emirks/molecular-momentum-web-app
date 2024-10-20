@@ -21,6 +21,10 @@ class HabitService {
       throw Exception('User ID not available');
     }
     habitData['user'] = userId;
+    // Ensure time_location and identity are included in habitData
+    if (!habitData.containsKey('time_location') || !habitData.containsKey('identity')) {
+      throw Exception('Habit data must include time_location and identity');
+    }
     final response = await ApiService.authenticatedPost('/api/habits/', habitData);
     if (response.statusCode == 201) {
       return json.decode(response.body);
