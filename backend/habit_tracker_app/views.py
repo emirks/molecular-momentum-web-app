@@ -57,8 +57,15 @@ class UserViewSet(viewsets.ModelViewSet):
             logger.info(f"User {request.user.username} retrieved their own details")
             return Response(serializer.data)
         elif request.method == 'PUT':
+            current_password = request.data.get('current_password')
+            if not current_password or not request.user.check_password(current_password):
+                return Response({'detail': 'Current password is incorrect'}, status=status.HTTP_400_BAD_REQUEST)
+            
             serializer = self.get_serializer(request.user, data=request.data, partial=True)
             if serializer.is_valid():
+                new_password = request.data.get('new_password')
+                if new_password:
+                    request.user.set_password(new_password)
                 serializer.save()
                 logger.info(f"User {request.user.username} updated their profile")
                 return Response(serializer.data)
@@ -170,3 +177,4 @@ class HabitStreakViewSet(viewsets.ModelViewSet):
         logger.info(f"User {request.user.username} reset streak for habit {habit_id}")
         serializer = self.get_serializer(streak)
         return Response(serializer.data)
+
