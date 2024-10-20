@@ -78,18 +78,16 @@ class TrackingChannelViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def list(self, request):
+        channels = self.get_queryset()
+        serializer = DetailedTrackingChannelSerializer(channels, many=True)
         logger.info(f"User {request.user.username} retrieved tracking channel list")
-        return super().list(request)
+        return Response(serializer.data)
 
-    def retrieve(self, request, pk=None):
-        logger.info(f"User {request.user.username} retrieved tracking channel details for channel {pk}")
-        return super().retrieve(request, pk)
-
-    @action(detail=True, methods=['get'])
-    def detailed(self, request, pk=None):
-        channel = self.get_object()
-        serializer = DetailedTrackingChannelSerializer(channel)
-        logger.info(f"User {request.user.username} retrieved detailed view of tracking channel {pk}")
+    @action(detail=False, methods=['get'])
+    def detailed(self, request):
+        channels = self.get_queryset()
+        serializer = DetailedTrackingChannelSerializer(channels, many=True)
+        logger.info(f"User {request.user.username} retrieved detailed tracking channel list")
         return Response(serializer.data)
 
     @action(detail=True, methods=['post'])
