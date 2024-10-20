@@ -25,4 +25,14 @@ class AuthService {
       return false;
     }
   }
+
+  static Future<void> logout() async {
+    try {
+      ApiService.clearToken();
+      ApiService.clearUserId();
+      print('Logout successful: Token and UserId cleared');
+    } catch (e) {
+      print('Error during logout: $e');
+    }
+  }
 }

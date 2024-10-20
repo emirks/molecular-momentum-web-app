@@ -30,6 +30,10 @@ class ApiService {
     _userId = null;
   }
 
+  static void clearToken() {
+    _token = null;
+  }
+
   static Future<http.Response> authenticatedGet(String endpoint) async {
     final token = getToken();
     print('Token for request: $token'); // Add this line

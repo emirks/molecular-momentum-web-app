@@ -5,6 +5,7 @@ import 'services/api_service.dart';
 import 'services/habit_service.dart';
 import 'services/user_service.dart';
 import 'settings_screen.dart';
+import 'services/auth_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -279,9 +280,8 @@ class _HomeScreenState extends State<HomeScreen> {
             leading: Icon(Icons.exit_to_app),
             title: Text('Logout'),
             onTap: () async {
-              ApiService.clearUserId();
-              // await AuthService.logout(); // Add this line if you have a logout method in AuthService
-              Navigator.of(context).pushReplacementNamed('/login');
+              await AuthService.logout();
+              Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
             },
           ),
         ],
