@@ -18,6 +18,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  bool _passwordVisible = false; // Add this line
 
   @override
   void dispose() {
@@ -136,9 +137,22 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           borderSide: BorderSide(color: Colors.white),
           borderRadius: BorderRadius.circular(10),
         ),
+        suffixIcon: label == 'Password' || label == 'Confirm Password'
+            ? IconButton(
+                icon: Icon(
+                  _passwordVisible ? Icons.visibility : Icons.visibility_off,
+                  color: Colors.white,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _passwordVisible = !_passwordVisible;
+                  });
+                },
+              )
+            : null,
       ),
       style: TextStyle(color: Colors.white),
-      obscureText: obscureText,
+      obscureText: (label == 'Password' || label == 'Confirm Password') ? !_passwordVisible : obscureText,
       keyboardType: keyboardType,
       validator: (value) {
         if (value == null || value.isEmpty) {
