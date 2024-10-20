@@ -6,6 +6,7 @@ import 'services/habit_service.dart';
 import 'services/user_service.dart';
 import 'settings_screen.dart';
 import 'services/auth_service.dart';
+import 'tracking_channels_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -265,6 +266,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 fontSize: 24,
               ),
             ),
+          ),
+          ListTile(
+            leading: Icon(Icons.group),
+            title: Text('Tracking Channels'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => TrackingChannelsScreen()),
+              );
+            },
           ),
           ListTile(
             leading: Icon(Icons.settings),

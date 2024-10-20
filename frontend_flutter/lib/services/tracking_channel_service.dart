@@ -2,10 +2,11 @@ import 'dart:convert';
 import 'api_service.dart';
 
 class TrackingChannelService {
-  static Future<List<dynamic>> getTrackingChannels() async {
-    final response = await ApiService.authenticatedGet('/api/channels/');
+  static Future<List<Map<String, dynamic>>> getTrackingChannels() async {
+    final response = await ApiService.authenticatedGet('/api/channels/detailed/');
     if (response.statusCode == 200) {
-      return json.decode(response.body);
+      List<dynamic> channels = json.decode(response.body);
+      return channels.map((channel) => Map<String, dynamic>.from(channel)).toList();
     } else {
       throw Exception('Failed to load tracking channels');
     }
@@ -34,5 +35,17 @@ class TrackingChannelService {
     if (response.statusCode != 200) {
       throw Exception('Failed to add user to channel');
     }
+  }
+
+  static Future<List<Map<String, dynamic>>> getDetailedTrackingChannels() async {
+    final channels = await getTrackingChannels();
+    List<Map<String, dynamic>> detailedChannels = [];
+
+    for (var channel in channels) {
+      final detailedChannel = await getDetailedTrackingChannel(channel['id']);
+      detailedChannels.add(detailedChannel);
+    }
+
+    return detailedChannels;
   }
 }
