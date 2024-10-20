@@ -7,6 +7,7 @@ import 'services/user_service.dart';
 import 'settings_screen.dart';
 import 'services/auth_service.dart';
 import 'tracking_channels_screen.dart';
+import 'design_render_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -293,6 +294,16 @@ class _HomeScreenState extends State<HomeScreen> {
             onTap: () async {
               await AuthService.logout();
               Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.palette),
+            title: Text('Design Render'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => DesignRenderScreen()),
+              );
             },
           ),
         ],
